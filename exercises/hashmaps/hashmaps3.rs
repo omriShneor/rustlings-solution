@@ -14,12 +14,12 @@
 
 // Execute `rustlings hint hashmaps3` or use the `hint` watch subcommand for a hint.
 
-// I AM NOT DONE
+
 
 use std::collections::HashMap;
 
 // A structure to store team name and its goal details.
-struct Team {
+pub struct Team {
     name: String,
     goals_scored: u8,
     goals_conceded: u8,
@@ -35,13 +35,25 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
         let team_1_score: u8 = v[2].parse().unwrap();
         let team_2_name = v[1].to_string();
         let team_2_score: u8 = v[3].parse().unwrap();
-        // TODO: Populate the scores table with details extracted from the
-        // current line. Keep in mind that goals scored by team_1
-        // will be the number of goals conceded from team_2, and similarly
-        // goals scored by team_2 will be the number of goals conceded by
-        // team_1.
+        update_score(&mut scores, &team_1_name, team_2_score, team_1_score);
+        update_score(&mut scores, &team_2_name, team_1_score, team_2_score);
     }
     scores
+}
+
+
+pub fn update_score(scores: &mut HashMap<String, Team>, team_name: &String, conceded: u8, scored: u8) {
+    match scores.entry(team_name.clone()) {
+        std::collections::hash_map::Entry::Occupied(mut entry) => {
+            let team = entry.get_mut();
+            team.goals_conceded += conceded;
+            team.goals_scored += scored;
+        },
+        std::collections::hash_map::Entry::Vacant(entry) => {
+            entry.insert(Team {name: team_name.to_string(), 
+                goals_scored: scored, goals_conceded: conceded});
+        },
+    }
 }
 
 #[cfg(test)]
@@ -70,11 +82,12 @@ mod tests {
     }
 
     #[test]
-    fn validate_team_score_1() {
+    fn test_team_score() {
+        let (team_name, scored, conceded) = ("France", 5, 5);
         let scores = build_scores_table(get_results());
-        let team = scores.get("England").unwrap();
-        assert_eq!(team.goals_scored, 5);
-        assert_eq!(team.goals_conceded, 4);
+        let team = scores.get(team_name).unwrap();
+        assert_eq!(team.goals_scored, scored);
+        assert_eq!(team.goals_conceded, conceded);
     }
 
     #[test]
